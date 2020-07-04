@@ -10,10 +10,12 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile('./src/desktop/views/index.html');
+  mainWindow.loadFile('src/desktop/views/index.html');
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  mainWindow.removeMenu();
 }
 
 app.whenReady().then(() => {
