@@ -20,6 +20,10 @@
   },
   "dependencies": {
     "@jaames/iro": "^5.1.8",
-    "midi": "^1.0.0"
+    "bluebird": "^3.7.2",
+    "johnny-five": "^2.0.0",
+    "midi": "^1.0.0",
+    "node-pixel": "git+https://github.com/ajfisher/node-pixel#j5-firmata-upg",
+    "serialport": "^9.0.0"
   }
 }

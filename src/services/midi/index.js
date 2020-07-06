@@ -8,15 +8,15 @@ const typeMap = {
 };
 
 const MidiService = {
-  listenDevice(portId) {
+  listenDevice({ portId, keyOnCallback, keyOffCallback }) {
     input.on('message', (deltaTime, message) => {
       const [type, note] = message;
       const key = 108 - note;
 
       if (type === typeMap.noteOn) {
-        console.log(`Pressed key: ${key}`);
+        keyOnCallback(key);
       } else if (type === typeMap.noteOff) {
-        console.log(`Released key: ${key}`);
+        keyOffCallback(key);
       }
     });
 
