@@ -3,8 +3,9 @@ const SerialPort = require('serialport');
 
 const MidiService = require('../midi');
 
-const startMarker = 0x3C;
-const endMarker = 0x3E;
+const CMD_KEY_ON = 0x1;
+const CMD_KEY_OFF = 0x2;
+const CMD_CHANGE_COLOR = 0x3;
 
 const port = new SerialPort('COM4', {
   baudRate: 115200,
@@ -13,9 +14,9 @@ const port = new SerialPort('COM4', {
 async function start() {
   for (let i = 0; i < 88; i += 1) {
     turnOnKey(i);
-    await bluebird.delay(5);
+    await bluebird.delay(12);
     turnOffKey(i);
-    await bluebird.delay(5);
+    await bluebird.delay(12);
   }
 }
 
@@ -33,18 +34,25 @@ port.on('data', (data) => {
 
 function turnOnKey(key) {
   console.log(`Turning on key: ${key}`);
-  setTimeout(() => port.write(Buffer.from([1, key])));
+  setTimeout(() => port.write(Buffer.from([CMD_KEY_ON, key])));
 }
 
 function turnOffKey(key) {
   console.log(`Turning off key: ${key}`);
-  setTimeout(() => port.write(Buffer.from([2, key])));
+  setTimeout(() => port.write(Buffer.from([CMD_KEY_OFF, key])));
+}
+
+function changeColor(r, g, b) {
+  console.log(`Changing strip color to: rgb(${r}, ${g}, ${b})`);
+  setTimeout(() => port.write(Buffer.from([CMD_CHANGE_COLOR, r, g, b])));
 }
 
 async function main() {
   await bluebird.delay(3000);
+  changeColor(255, 255, 0);
+  await bluebird.delay(500);
 
-  await start();
+  // await start();
 
   MidiService.listenDevice({
     portId: 0,
