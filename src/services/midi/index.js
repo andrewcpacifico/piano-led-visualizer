@@ -13,9 +13,9 @@ const MidiService = {
       const [type, note] = message;
       const key = 108 - note;
 
-      if (type === typeMap.noteOn) {
+      if (type === typeMap.noteOn && typeof keyOnCallback === 'function') {
         keyOnCallback(key);
-      } else if (type === typeMap.noteOff) {
+      } else if (type === typeMap.noteOff && typeof keyOffCallback === 'function') {
         keyOffCallback(key);
       }
     });

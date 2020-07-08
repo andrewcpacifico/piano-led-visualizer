@@ -3,8 +3,8 @@
 #define NUMPIXELS 175
 
 #define NO_COMMAND 0x0
-#define NO_KEY 0x255
-#define NO_ACTION 0x255
+#define NO_KEY 0xFF
+#define NO_ACTION 0xFF
 
 #define CMD_KEY_ON 0x1
 #define CMD_KEY_OFF 0x2
@@ -13,6 +13,8 @@
 #define WAITING_COMMAND 0x1
 #define WAITING_KEY 0x2
 #define WAITING_COLOR 0x3
+
+#define BAUD_RATE 1000000
 
 Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 uint32_t color;
@@ -62,7 +64,7 @@ void setup()
   strip.begin();
   strip.clear();
 
-  Serial.begin(115200);
+  Serial.begin(BAUD_RATE);
   Serial.println("<Arduino is ready>");
 }
 

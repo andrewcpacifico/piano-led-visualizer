@@ -2,6 +2,7 @@ const { remote } = window;
 const { require } = remote;
 
 const MidiService = require('./services/midi');
+const LedStripService = require('./services/led-strip');
 
 const { iro } = window;
 
@@ -24,7 +25,15 @@ function startListenMidiDevice() {
   const selector = document.querySelector('#midi-device-selector');
   const midiPortId = parseInt(selector.value, 10);
 
-  MidiService.listenDevice(midiPortId);
+  MidiService.listenDevice({
+    portId: midiPortId,
+    keyOnCallback: (key) => {
+      LedStripService.turnOn(key);
+    },
+    keyOffCallback: (key) => {
+      LedStripService.turnOff(key);
+    },
+  });
 }
 
 function registerEvents() {
@@ -32,11 +41,13 @@ function registerEvents() {
   startButton.addEventListener('click', () => {
     startListenMidiDevice();
   });
-}
 
-colorPicker.on('color:change', (color) => {
-  console.log(color);
-});
+  colorPicker.on('color:change', (color) => {
+    const { r, g, b } = color.rgb;
+    LedStripService.changeColor(r, g, b);
+  });
+}
 
 createMidiDeviceSelector();
 registerEvents();
+LedStripService.init();
