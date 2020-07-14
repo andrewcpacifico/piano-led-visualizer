@@ -1,5 +1,5 @@
 #include <Adafruit_NeoPixel.h>
-#define PIN 8
+#define PIN 7
 #define NUMPIXELS 175
 
 #define NO_COMMAND 0x0
