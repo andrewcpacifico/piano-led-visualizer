@@ -10,11 +10,13 @@
 #define CMD_KEY_OFF 0x2
 #define CMD_CHANGE_COLOR 0x3
 
+#define RES_OK 0x0
+
 #define WAITING_COMMAND 0x1
 #define WAITING_KEY 0x2
 #define WAITING_COLOR 0x3
 
-#define BAUD_RATE 1000000
+#define BAUD_RATE 2000000
 
 Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 uint32_t color;
@@ -65,7 +67,7 @@ void setup()
   strip.clear();
 
   Serial.begin(BAUD_RATE);
-  Serial.println("<Arduino is ready>");
+  // Serial.println("<Arduino is ready>");
 }
 
 void loop()
@@ -74,17 +76,17 @@ void loop()
     byte cmd = readCommand();
 
     if (cmd != NO_COMMAND) {
-      Serial.print("Command received: ");
-      Serial.print(cmd, DEC);
-      Serial.println();
+      // Serial.print("Command received: ");
+      // Serial.print(cmd, DEC);
+      // Serial.println();
 
       if (cmd == CMD_KEY_ON || cmd == CMD_KEY_OFF) {
-        Serial.println("Changing status to WAITING_KEY");
+        // Serial.println("Changing status to WAITING_KEY");
 
         readingStatus = WAITING_KEY;
         pendingAction = cmd;
       } else if (cmd == CMD_CHANGE_COLOR) {
-        Serial.println("Changing status to WAITING_COLOR");
+        // Serial.println("Changing status to WAITING_COLOR");
 
         readingStatus = WAITING_COLOR;
       }
@@ -95,11 +97,11 @@ void loop()
     byte key = readKey();
 
     if (key != NO_KEY) {
-      Serial.print("Key received: ");
-      Serial.print(key, DEC);
-      Serial.println();
+      // Serial.print("Key received: ");
+      // Serial.print(key, DEC);
+      // Serial.println();
 
-      Serial.println("Changing status to WAITING_COMMAND");
+      // Serial.println("Changing status to WAITING_COMMAND");
 
       if (pendingAction == CMD_KEY_ON) {
         turnOnKey(key);
@@ -107,6 +109,7 @@ void loop()
         turnOffKey(key);
       }
 
+      Serial.write(RES_OK);
       pendingAction = NO_ACTION;
       readingStatus = WAITING_COMMAND;
     }
@@ -118,7 +121,9 @@ void loop()
     Serial.readBytes(color, 3);
 
     changeColor(color[0], color[1], color[2]);
-    Serial.println("Led strip color updated");
+    // Serial.println("Led strip color updated");
+
+    Serial.write(RES_OK);
     readingStatus = WAITING_COMMAND;
   }
 }

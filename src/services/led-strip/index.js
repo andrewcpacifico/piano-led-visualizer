@@ -1,15 +1,34 @@
 const bluebird = require('bluebird');
 const SerialPort = require('serialport');
 
-const BAUD_RATE = 1000000;
+const BAUD_RATE = 2000000;
+
 const CMD_KEY_ON = 0x1;
 const CMD_KEY_OFF = 0x2;
 const CMD_CHANGE_COLOR = 0x3;
+
+const RES_OK = 0x0;
+
+const messageQueue = [];
+let freeQueue = true;
 
 const port = new SerialPort('COM4', {
   baudRate: BAUD_RATE,
   autoOpen: false,
 });
+
+function enqueue(msg) {
+  messageQueue.push(msg);
+}
+
+async function dequeue() {
+  if (freeQueue && messageQueue.length > 0) {
+    freeQueue = false;
+
+    const msg = messageQueue.shift();
+    setTimeout(() => port.write(msg));
+  }
+}
 
 function openSerial() {
   return new Promise((resolve, reject) => {
@@ -18,7 +37,12 @@ function openSerial() {
     });
 
     port.on('data', (data) => {
-      console.log(data.toString());
+      const res = data.readUInt8(0);
+
+      if (res === RES_OK) {
+        freeQueue = true;
+        dequeue();
+      }
     });
 
     port.open((err) => {
@@ -33,30 +57,27 @@ function openSerial() {
 
 const LedStripService = {
   turnOn(key) {
-    console.log(`Turning on key: ${key}`);
-    setTimeout(() => port.write(Buffer.from([CMD_KEY_ON, key])), 1);
+    enqueue(Buffer.from([CMD_KEY_ON, key]));
+    dequeue();
   },
 
   turnOff(key) {
-    console.log(`Turning off key: ${key}`);
-    setTimeout(() => port.write(Buffer.from([CMD_KEY_OFF, key])), 1);
+    enqueue(Buffer.from([CMD_KEY_OFF, key]));
+    dequeue();
   },
 
   changeColor(r, g, b) {
-    console.log(`Changing strip color to: rgb(${r}, ${g}, ${b})`);
-    setTimeout(() => port.write(Buffer.from([CMD_CHANGE_COLOR, r, g, b])));
+    enqueue(Buffer.from([CMD_CHANGE_COLOR, r, g, b]));
+    dequeue();
   },
 
   async demo() {
-    let count = 0;
     for (let i = 0; i < 88; i += 1) {
-      setTimeout(() => this.turnOn(i), count);
-      count += 8;
+      setTimeout(() => this.turnOn(i));
     }
 
     for (let i = 0; i < 88; i += 1) {
-      setTimeout(() => this.turnOff(i), count);
-      count += 8;
+      setTimeout(() => this.turnOff(i));
     }
   },
 
