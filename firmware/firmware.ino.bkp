@@ -1,0 +1,54 @@
+#include "FastLED.h"
+#define PIN 7
+#define NUMPIXELS 60
+
+#define BAUD_RATE 2000000
+#define BUFF_SIZE 2
+
+CRGB leds[NUMPIXELS];
+byte buff[BUFF_SIZE];
+byte count;
+
+// void fillPixel(int id, int r, int g, int b)
+// {
+//   if (id < NUMPIXELS) {
+//     strip.setPixelColor(id, strip.Color(r, g, b));
+//     strip.show();
+//   }
+// }
+
+void setup()
+{
+  count = 0;
+
+  FastLED.addLeds<NEOPIXEL, PIN>(leds, NUMPIXELS);
+
+  Serial.begin(BAUD_RATE);
+}
+
+void loop()
+{
+  for (int i = 0; i < NUMPIXELS; i++) {
+    leds[i] = CRGB::White; FastLED.show();
+    leds[i] = CRGB::Black; FastLED.show();
+  }
+}
+
+// void loop()
+// {
+//   if (Serial.available() > 0 && count < BUFF_SIZE) {
+//     buff[count] = Serial.read();
+//     count++;
+//   }
+
+//   if (count == BUFF_SIZE) {
+//     if (buff[1] == 1) {
+//       fillPixel((int) buff[0], 0, 0, 255);
+//     } else {
+//       fillPixel((int) buff[0], 0, 0, 0);
+//     }
+//     Serial.write(0);
+
+//     count = 0;
+//   }
+// }

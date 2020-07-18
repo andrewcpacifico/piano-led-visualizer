@@ -3,6 +3,7 @@ const { require } = remote;
 
 const MidiService = require('./services/midi');
 const LedStripService = require('./services/led-strip');
+const PianoVisualizerService = require('./services/piano-visualizer');
 
 const { iro } = window;
 
@@ -28,10 +29,10 @@ function startListenMidiDevice() {
   MidiService.listenDevice({
     portId: midiPortId,
     keyOnCallback: (key) => {
-      LedStripService.turnOn(key);
+      PianoVisualizerService.turnOnKey(key);
     },
     keyOffCallback: (key) => {
-      LedStripService.turnOff(key);
+      PianoVisualizerService.turnOffKey(key);
     },
   });
 }
@@ -44,7 +45,7 @@ function registerEvents() {
 
   colorPicker.on('color:change', (color) => {
     const { r, g, b } = color.rgb;
-    LedStripService.changeColor(r, g, b);
+    PianoVisualizerService.changeColor({ r, g, b });
   });
 }
 

@@ -26,7 +26,7 @@ async function dequeue() {
     freeQueue = false;
 
     const msg = messageQueue.shift();
-    setTimeout(() => port.write(msg));
+    port.write(msg);
   }
 }
 
@@ -56,28 +56,18 @@ function openSerial() {
 }
 
 const LedStripService = {
-  turnOn(key) {
-    enqueue(Buffer.from([CMD_KEY_ON, key]));
-    dequeue();
-  },
-
-  turnOff(key) {
-    enqueue(Buffer.from([CMD_KEY_OFF, key]));
-    dequeue();
-  },
-
-  changeColor(r, g, b) {
-    enqueue(Buffer.from([CMD_CHANGE_COLOR, r, g, b]));
+  setPixelColor(pixel, r, g, b) {
+    enqueue(Buffer.from([pixel, r, g, b]));
     dequeue();
   },
 
   async demo() {
-    for (let i = 0; i < 88; i += 1) {
-      setTimeout(() => this.turnOn(i));
+    for (let i = 0; i < 175; i += 1) {
+      setTimeout(() => this.setPixelColor(i, 0, 0, 255));
     }
 
-    for (let i = 0; i < 88; i += 1) {
-      setTimeout(() => this.turnOff(i));
+    for (let i = 0; i < 175; i += 1) {
+      setTimeout(() => this.setPixelColor(i, 0, 0, 0));
     }
   },
 

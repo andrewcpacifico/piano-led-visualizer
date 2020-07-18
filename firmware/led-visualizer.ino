@@ -2,146 +2,40 @@
 #define PIN 7
 #define NUMPIXELS 175
 
-#define NO_COMMAND 0x0
-#define NO_KEY 0xFF
-#define NO_ACTION 0xFF
-
-#define CMD_KEY_ON 0x1
-#define CMD_KEY_OFF 0x2
-#define CMD_CHANGE_COLOR 0x3
-
+#define BAUD_RATE 2000000
+#define COMMAND_SIZE 4
 #define RES_OK 0x0
 
-#define WAITING_COMMAND 0x1
-#define WAITING_KEY 0x2
-#define WAITING_COLOR 0x3
-
-#define BAUD_RATE 2000000
-
 Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-uint32_t color;
-
-byte readingStatus = WAITING_COMMAND;
-byte pendingAction = NO_ACTION;
-
-int getPixelId(int key)
-{
-  int pixel = key * 2;
-
-  if (key > 34) {
-    pixel--;
-  }
-
-  return pixel;
-}
-
-void turnOnKey(int key)
-{
-  int pixel = getPixelId(key);
-
-  strip.fill(color, pixel, 2);
-  strip.show();
-}
-
-void turnOffKey(int key)
-{
-  int pixel = getPixelId(key);
-  strip.fill(strip.Color(0, 0, 0), pixel, 2);
-  strip.show();
-}
-
-void changeColor(byte r, byte g, byte b)
-{
-  color = strip.Color(r, g, b);
-}
+byte buffer[COMMAND_SIZE];
+byte offset;
 
 void setup()
 {
-  int r = random(0, 255);
-  int g = random(0, 255);
-  int b = random(0, 255);
-
-  color = strip.Color(0, 0, 255);
-
   strip.begin();
   strip.clear();
 
   Serial.begin(BAUD_RATE);
+  offset = 0;
   // Serial.println("<Arduino is ready>");
 }
 
 void loop()
 {
-  if (readingStatus == WAITING_COMMAND) {
-    byte cmd = readCommand();
+  while (Serial.available() > 0) {
+    buffer[offset] = Serial.read();
+    offset++;
 
-    if (cmd != NO_COMMAND) {
-      // Serial.print("Command received: ");
-      // Serial.print(cmd, DEC);
-      // Serial.println();
-
-      if (cmd == CMD_KEY_ON || cmd == CMD_KEY_OFF) {
-        // Serial.println("Changing status to WAITING_KEY");
-
-        readingStatus = WAITING_KEY;
-        pendingAction = cmd;
-      } else if (cmd == CMD_CHANGE_COLOR) {
-        // Serial.println("Changing status to WAITING_COLOR");
-
-        readingStatus = WAITING_COLOR;
-      }
-    }
-  }
-
-  if (readingStatus == WAITING_KEY) {
-    byte key = readKey();
-
-    if (key != NO_KEY) {
-      // Serial.print("Key received: ");
-      // Serial.print(key, DEC);
-      // Serial.println();
-
-      // Serial.println("Changing status to WAITING_COMMAND");
-
-      if (pendingAction == CMD_KEY_ON) {
-        turnOnKey(key);
-      } else if (pendingAction == CMD_KEY_OFF) {
-        turnOffKey(key);
-      }
-
+    if (offset == COMMAND_SIZE) {
+      runCommand();
       Serial.write(RES_OK);
-      pendingAction = NO_ACTION;
-      readingStatus = WAITING_COMMAND;
+      offset = 0;
     }
   }
-
-  if (readingStatus == WAITING_COLOR) {
-    byte color[3];
-
-    Serial.readBytes(color, 3);
-
-    changeColor(color[0], color[1], color[2]);
-    // Serial.println("Led strip color updated");
-
-    Serial.write(RES_OK);
-    readingStatus = WAITING_COMMAND;
-  }
 }
 
-byte readCommand()
+void runCommand()
 {
-  if (Serial.available() > 0 && readingStatus == WAITING_COMMAND) {
-    return Serial.read();
-  }
-
-  return NO_COMMAND;
-}
-
-byte readKey()
-{
-  if (Serial.available() > 0 && readingStatus == WAITING_KEY) {
-    return Serial.read();
-  }
-
-  return NO_KEY;
+  strip.setPixelColor(buffer[0], strip.Color(buffer[1], buffer[2], buffer[3]));
+  strip.show();
 }
