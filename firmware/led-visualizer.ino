@@ -4,7 +4,9 @@
 
 #define BAUD_RATE 2000000
 #define COMMAND_SIZE 4
+
 #define RES_OK 0x0
+#define RES_CONNECTED 0x1
 
 Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 byte buffer[COMMAND_SIZE];
@@ -17,7 +19,7 @@ void setup()
 
   Serial.begin(BAUD_RATE);
   offset = 0;
-  // Serial.println("<Arduino is ready>");
+  Serial.write(RES_CONNECTED);
 }
 
 void loop()

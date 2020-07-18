@@ -22,6 +22,21 @@ function createMidiDeviceSelector() {
   });
 }
 
+async function createStripControllerSelector() {
+  const devices = await LedStripService.getDevices();
+  const selector = document.querySelector('#strip-controller-selector');
+
+  devices.forEach((device) => {
+    const { path, manufacturer } = device;
+
+    const option = document.createElement('option');
+    option.value = path;
+    option.innerHTML = `${manufacturer} (${path})`;
+
+    selector.appendChild(option);
+  });
+}
+
 function startListenMidiDevice() {
   const selector = document.querySelector('#midi-device-selector');
   const midiPortId = parseInt(selector.value, 10);
@@ -37,10 +52,22 @@ function startListenMidiDevice() {
   });
 }
 
+function connectToLedStrip() {
+  const selector = document.querySelector('#strip-controller-selector');
+  const stripControllerPort = selector.value;
+
+  LedStripService.init({ port: stripControllerPort });
+}
+
 function registerEvents() {
-  const startButton = document.querySelector('#btn-start');
-  startButton.addEventListener('click', () => {
+  const listenMidiButton = document.querySelector('#btn-listen-midi');
+  listenMidiButton.addEventListener('click', () => {
     startListenMidiDevice();
+  });
+
+  const connectToStripButton = document.querySelector('#btn-connect-strip');
+  connectToStripButton.addEventListener('click', () => {
+    connectToLedStrip();
   });
 
   colorPicker.on('color:change', (color) => {
@@ -50,5 +77,6 @@ function registerEvents() {
 }
 
 createMidiDeviceSelector();
+createStripControllerSelector()
+
 registerEvents();
-LedStripService.init();

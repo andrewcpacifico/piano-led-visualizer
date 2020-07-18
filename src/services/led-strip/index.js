@@ -2,20 +2,12 @@ const bluebird = require('bluebird');
 const SerialPort = require('serialport');
 
 const BAUD_RATE = 2000000;
-
-const CMD_KEY_ON = 0x1;
-const CMD_KEY_OFF = 0x2;
-const CMD_CHANGE_COLOR = 0x3;
-
 const RES_OK = 0x0;
+const RES_CONNECTED = 0x1;
 
 const messageQueue = [];
 let freeQueue = true;
-
-const port = new SerialPort('COM4', {
-  baudRate: BAUD_RATE,
-  autoOpen: false,
-});
+let serialPort;
 
 function enqueue(msg) {
   messageQueue.push(msg);
@@ -26,31 +18,36 @@ async function dequeue() {
     freeQueue = false;
 
     const msg = messageQueue.shift();
-    port.write(msg);
+    serialPort.write(msg);
   }
 }
 
-function openSerial() {
+function openSerial({ port }) {
+  serialPort = new SerialPort(port, {
+    baudRate: BAUD_RATE,
+    autoOpen: false,
+  });
+
   return new Promise((resolve, reject) => {
-    port.on('close', () => {
+    serialPort.on('close', () => {
       console.log('serial port closed');
     });
 
-    port.on('data', (data) => {
+    serialPort.on('data', (data) => {
       const res = data.readUInt8(0);
 
       if (res === RES_OK) {
         freeQueue = true;
         dequeue();
+      } else if (res === RES_CONNECTED) {
+        resolve();
       }
     });
 
-    port.open((err) => {
+    serialPort.open((err) => {
       if (err) {
         reject();
       }
-
-      resolve();
     });
   });
 }
@@ -61,19 +58,23 @@ const LedStripService = {
     dequeue();
   },
 
-  async demo() {
+  demo() {
     for (let i = 0; i < 175; i += 1) {
-      setTimeout(() => this.setPixelColor(i, 0, 0, 255));
+      this.setPixelColor(i, 0, 0, 255);
     }
 
     for (let i = 0; i < 175; i += 1) {
-      setTimeout(() => this.setPixelColor(i, 0, 0, 0));
+      this.setPixelColor(i, 0, 0, 0);
     }
   },
 
-  async init() {
-    await openSerial();
-    await bluebird.delay(3000);
+  getDevices() {
+    return SerialPort.list();
+  },
+
+  async init({ port }) {
+    await openSerial({ port });
+    console.log(`Connected to led strip on ${port}`);
     this.demo();
   },
 };
