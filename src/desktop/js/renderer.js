@@ -1,5 +1,5 @@
 const { remote } = window;
-const { require } = remote;
+const { require, dialog } = remote;
 
 const MidiService = require('./services/midi');
 const LedStripService = require('./services/led-strip');
@@ -43,10 +43,12 @@ function startListenMidiDevice() {
 
   MidiService.listenDevice({
     portId: midiPortId,
-    keyOnCallback: (key) => {
+    noteOnCallback: (note) => {
+      const key = 108 - note;
       PianoVisualizerService.turnOnKey(key);
     },
-    keyOffCallback: (key) => {
+    noteOffCallback: (note) => {
+      const key = 108 - note;
       PianoVisualizerService.turnOffKey(key);
     },
   });
@@ -63,6 +65,29 @@ function registerEvents() {
   const listenMidiButton = document.querySelector('#btn-listen-midi');
   listenMidiButton.addEventListener('click', () => {
     startListenMidiDevice();
+  });
+
+  const recordMidiButton = document.querySelector('#btn-record-midi');
+  recordMidiButton.addEventListener('click', async (evt) => {
+    const button = evt.target;
+    const isRecording = button.classList.contains('recording');
+
+    button.innerHTML = isRecording ? 'Record midi' : 'Stop recording';
+    button.classList.toggle('recording');
+
+    if (isRecording) {
+      const filePath = dialog.showSaveDialogSync(
+        remote.getCurrentWindow(),
+        {
+        defaultPath: 'recording.mid',
+        filters: [{ name: 'Midi files', extensions: ['mid'] }]
+      });
+
+      MidiService.stopRecording();
+      MidiService.saveRecording(filePath);
+    } else {
+      MidiService.startRecording();
+    }
   });
 
   const connectToStripButton = document.querySelector('#btn-connect-strip');
