@@ -11,7 +11,8 @@ const CONTROLLER_1 = 0xB0;
 const CONTROLLER_2 = 0xB1;
 
 // with this definition we can use ms deltaTime unity
-const TICKS_PER_BEAT = 500;
+const BPM = 120;
+const TICKS_PER_BEAT = 96;
 
 let track;
 
@@ -22,6 +23,10 @@ function initTrack() {
     type: 'trackName',
     text: '1 1-Grand Piano\x00'
   }];
+}
+
+function secToTicks(secs) {
+  return secs * ((BPM / 60) * TICKS_PER_BEAT);
 }
 
 const MidiService = {
@@ -62,7 +67,7 @@ const MidiService = {
 
         if (this.isRecording) {
           track.push({
-            deltaTime: deltaTime * 1000,
+            deltaTime: secToTicks(deltaTime),
             channel: 0,
             type: type === NOTE_ON ? 'noteOn' : 'noteOff',
             noteNumber: note,
@@ -75,7 +80,7 @@ const MidiService = {
 
         if (this.isRecording) {
           track.push({
-            deltaTime: deltaTime * 1000,
+            deltaTime: secToTicks(deltaTime),
             channel: 0,
             type: 'controller',
             controllerType,
