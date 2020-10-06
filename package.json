@@ -12,7 +12,7 @@
     "rebuild": "electron-rebuild"
   },
   "devDependencies": {
-    "electron": "^9.0.1",
+    "electron": "^9.3.0",
     "electron-rebuild": "^1.11.0",
     "eslint": "6.8.0",
     "eslint-config-airbnb-base": "14.1.0",
